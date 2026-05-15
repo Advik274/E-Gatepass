@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: gatepass-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore   # closest free-tier region to India; options: oregon, frankfurt, singapore, ohio
+    plan: free          # upgrade to starter ($7/mo) to avoid spin-down
+    healthCheckPath: /api/auth/health
+
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DDL_AUTO
+        value: update          # flip to 'validate' after first successful deploy
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gatepass-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: gatepass-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: gatepass-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true    # Render auto-generates a secure random value
+      - key: JWT_EXPIRATION
+        value: 86400000
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://gatepass.vercel.app  # update to your real Vercel URL
+
+databases:
+  - name: gatepass-db
+    databaseName: gatepass
+    plan: free
+    region: singapore
